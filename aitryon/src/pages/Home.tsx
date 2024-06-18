@@ -1,22 +1,25 @@
 import React, { useState, useCallback, FormEvent } from "react";
 import { useDropzone, DropzoneOptions } from "react-dropzone";
 import { FaCloudUploadAlt } from "react-icons/fa";
+import { submitForm } from "../services/apiServices";
 
 export default function Home() {
-  const [suitImage, setSuitImage] = useState<string | null>(null);
-  const [photoImage, setPhotoImage] = useState<string | null>(null);
+  const [suitImage, setSuitImage] = useState<File | null>(null);
+  const [photoImage, setPhotoImage] = useState<File | null>(null);
+  const [garmentDes, setGarmentDes] = useState<string>("");
+  const [resultImage, setResultImage] = useState<string | null>(null);
   const [openUploadSuit, setOpenUploadSuit] = useState<boolean>(false);
   const [openUploadPerson, setOpenUploadPerson] = useState<boolean>(false);
 
   const onDropSuit = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles[0]) {
-      setSuitImage(URL.createObjectURL(acceptedFiles[0]));
+      setSuitImage(acceptedFiles[0]);
     }
   }, []);
 
   const onDropPhoto = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles[0]) {
-      setPhotoImage(URL.createObjectURL(acceptedFiles[0]));
+      setPhotoImage(acceptedFiles[0]);
     }
   }, []);
 
@@ -39,16 +42,31 @@ export default function Home() {
   const { getRootProps: getPhotoRootProps, getInputProps: getPhotoInputProps } =
     useDropzone(photoDropzoneOptions);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Handle form submission logic here
+
+    if (!suitImage || !photoImage || !garmentDes) {
+      alert("Please provide all required inputs");
+      return;
+    }
+
+    try {
+      const result = await submitForm(suitImage, photoImage, garmentDes);
+      setResultImage(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert("An unexpected error occurred");
+      }
+    }
   };
 
   return (
     <div className="w-full flex flex-col md:flex-row">
       <div className="bg-black w-full md:w-2/5 h-64 md:h-screen flex justify-center items-center">
         <img
-          src={`${process.env.PUBLIC_URL}/assets/man.jpeg`}
+          src={resultImage ? resultImage: `${process.env.PUBLIC_URL}/assets/man.jpeg`}
           alt="Example person"
           className="max-h-full w-auto"
         />
@@ -61,11 +79,11 @@ export default function Home() {
           className="flex flex-col items-center p-4"
           onSubmit={handleSubmit}
         >
-          <div className="flex flox-row ">
-            <div>
+          <div className="flex flex-row gap-4">
+            <div className="flex flex-col items-center">
               {suitImage && (
                 <img
-                  src={suitImage}
+                  src={URL.createObjectURL(suitImage)}
                   alt="Suit Preview"
                   className="max-h-48 w-auto mt-2"
                 />
@@ -86,10 +104,10 @@ export default function Home() {
                 />
               )}
             </div>
-            <div>
+            <div className="flex flex-col items-center">
               {photoImage && (
                 <img
-                  src={photoImage}
+                  src={URL.createObjectURL(photoImage)}
                   alt="Your photo"
                   className="max-h-48 w-auto mt-2"
                 />
@@ -104,7 +122,13 @@ export default function Home() {
               </div>
             </div>
           </div>
-
+          <input
+            type="text"
+            placeholder="Describe the garment"
+            value={garmentDes}
+            onChange={(e) => setGarmentDes(e.target.value)}
+            className="border border-gray-300 p-2 rounded mt-4 w-full"
+          />
           <button
             type="submit"
             className="bg-black text-white p-2 rounded mt-4"
@@ -112,6 +136,12 @@ export default function Home() {
             Submit
           </button>
         </form>
+        {resultImage && (
+          <div className="mt-4">
+            <h2 className="text-2xl text-center">Result</h2>
+            <img src={resultImage} alt="Result" className="max-h-64 w-auto mt-2" />
+          </div>
+        )}
       </div>
     </div>
   );
