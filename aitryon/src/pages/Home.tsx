@@ -71,10 +71,10 @@ const Home: React.FC = () => {
   return (
     <div className="flex flex-wrap h-screen">
       <div className="bg-white w-full md:w-3/5 flex flex-col items-center justify-center p-8">
-        <h1 className="text-3xl md:text-4xl text-center font-semibold p-4">
+        <h1 className="text-3xl md:text-4xl text-center font-semibold pb-28">
           See How You Look in the Suit
         </h1>
-        <form className="flex flex-col items-center w-full" onSubmit={handleSubmit}>
+        <form className="flex flex-col items-start w-full" onSubmit={handleSubmit}>
           <div className="flex flex-col md:flex-row gap-4 w-full">
             <div className="flex flex-col items-center w-full md:w-1/2">
               {suitImage && (
@@ -112,11 +112,11 @@ const Home: React.FC = () => {
             placeholder="Describe the garment"
             value={garmentDes}
             onChange={(e) => setGarmentDes(e.target.value)}
-            className="border border-gray-300 p-2 rounded mt-4 w-full md:w-4/5"
+            className="border border-gray-300 p-2 rounded mt-4"
           />
           <button
             type="submit"
-            className={`bg-black text-white p-2 rounded mt-4 w-full md:w-4/5 transition duration-200 ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-800'}`}
+            className={`bg-black text-white p-3 px-6 rounded mt-4 transition duration-200 ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-800'}`}
             disabled={isLoading}
           >
             {isLoading ? "Loading Image..." : "Submit"}
