@@ -1,13 +1,15 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
-import Home from './pages/Home';
+import React from "react";
+import logo from "./logo.svg";
+import "./App.css";
+import Home from "./pages/Home";
+import { SnackbarProvider } from "notistack";
 
 function App() {
   return (
     <div className="App">
-      <Home/>
-     
+      <SnackbarProvider maxSnack={3}>
+        <Home />
+      </SnackbarProvider>
     </div>
   );
 }

@@ -1,8 +1,11 @@
 import React, { useState, useCallback, FormEvent } from "react";
 import { useDropzone, DropzoneOptions } from "react-dropzone";
 import { submitForm } from "../services/apiServices";
+import * as yup from 'yup';
+import { useSnackbar } from 'notistack';
 
 const Home: React.FC = () => {
+  const { enqueueSnackbar } = useSnackbar();
   const [suitImage, setSuitImage] = useState<File | null>(null);
   const [photoImage, setPhotoImage] = useState<File | null>(null);
   const [garmentDes, setGarmentDes] = useState<string>("");
@@ -44,30 +47,40 @@ const Home: React.FC = () => {
     getInputProps: getPhotoInputProps,
   } = useDropzone(photoDropzoneOptions);
 
+  const validationSchema = yup.object().shape({
+    suitImage: yup
+      .mixed()
+      .required("Please provide a suit image."),
+    photoImage: yup
+      .mixed()
+      .required("Please provide your photo."),
+    garmentDes: yup
+      .string()
+      .required("Please describe the garment.")
+      .max(200, "Garment description should not exceed 200 characters."),
+  });
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    if (!suitImage || !photoImage || !garmentDes) {
-      alert("Please provide all required inputs");
-      return;
-    }
-
-    setIsLoading(true);
-
+  
     try {
-      const result = await submitForm(suitImage, photoImage, garmentDes);
+      await validationSchema.validate({ suitImage, photoImage, garmentDes }, { abortEarly: false });
+      setIsLoading(true);
+      
+      // Assuming submitForm is a mock function since it's not fully implemented here
+      const result = await submitForm(suitImage!, photoImage!, garmentDes);
       setResultImage(result);
+      enqueueSnackbar("Image successfully loaded!", { variant: 'success' });
     } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
+      if (error instanceof yup.ValidationError) {
+        error.errors.forEach(err => enqueueSnackbar(err, { variant: 'error' }));
       } else {
-        alert("An unexpected error occurred");
+        enqueueSnackbar("An unexpected error occurred", { variant: 'error' });
       }
     } finally {
       setIsLoading(false);
     }
   };
-
+  
   return (
     <div className="flex flex-wrap h-screen">
       <div className="bg-white w-full md:w-3/5 flex flex-col items-center justify-center p-8">
@@ -123,7 +136,7 @@ const Home: React.FC = () => {
           </button>
         </form>
       </div>
-      <div className=" w-full md:w-2/5 h-screen flex justify-center items-center md:p-5">
+      <div className="w-full md:w-2/5 h-screen flex justify-center items-center md:p-5">
         <img
           src={resultImage ? resultImage : `${process.env.PUBLIC_URL}/assets/man.jpeg`}
           alt="Example person"
